@@ -28,20 +28,29 @@ import PageWrapper from "./pages/PageWrapper";
 const AppHome = () => {
   const [currentPage, setCurrentPage] = useState("accueil");
   // --- NOUVEAU : On stocke la page précédente ici ---
-  const [previousPage, setPreviousPage] = useState("accueil"); 
-  
+  const [previousPage, setPreviousPage] = useState("accueil");
+
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [selectedOffer, setSelectedOffer] = useState(null);
-  
-  const [chatHistory, setChatHistory] = useState([{ role: "assistant", text: "Bonjour. Je suis l'expert de l'Autorité de Régulation." }]);
+
+  const [chatHistory, setChatHistory] = useState([
+    {
+      role: "assistant",
+      text: "Bonjour. Je suis l'expert de l'Autorité de Régulation.",
+    },
+  ]);
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatHistory, isLoading]);
-  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [currentPage]);
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatHistory, isLoading]);
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentPage]);
 
   const toggleAIModal = () => setIsAIModalOpen(!isAIModalOpen);
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -51,7 +60,9 @@ const AppHome = () => {
     setCurrentPage("resultats-comparaison");
   };
 
-  const askGemini = async () => { /* ... ton code AI ... */ };
+  const askGemini = async () => {
+    /* ... ton code AI ... */
+  };
 
   // --- FONCTION UTILITAIRE POUR ALLER AUX DÉTAILS ---
   // Cette fonction sauvegarde la page actuelle avant de changer
@@ -79,7 +90,7 @@ const AppHome = () => {
           <OfferDetailsPage
             offer={selectedOffer}
             // --- CORRECTION ICI : On utilise previousPage ---
-            onBack={() => setCurrentPage(previousPage)} 
+            onBack={() => setCurrentPage(previousPage)}
           />
         );
 
@@ -89,13 +100,13 @@ const AppHome = () => {
           <MobileRangeSimulator
             onBack={() => setCurrentPage("accueil")}
             onStart={(offerOrProfile) => {
-               if(offerOrProfile.price) {
-                  // Si c'est une offre directe, on va aux détails
-                  handleSeeDetails(offerOrProfile);
-               } else {
-                  // Si c'est un profil, on lance le comparateur
-                  startComparison(offerOrProfile);
-               }
+              if (offerOrProfile.price) {
+                // Si c'est une offre directe, on va aux détails
+                handleSeeDetails(offerOrProfile);
+              } else {
+                // Si c'est un profil, on lance le comparateur
+                startComparison(offerOrProfile);
+              }
             }}
           />
         );
@@ -104,8 +115,11 @@ const AppHome = () => {
       case "simulation-mobile":
         return (
           <ComparisonResultsPage
+            // Si tu as un profil enregistré, passe-le ici, sinon ça prendra les valeurs par défaut
+            profile={selectedProfile}
             onBack={() => setCurrentPage("accueil")}
-            onStart={startComparison}
+            // --- C'EST LA LIGNE QUI MANQUAIT ET QUI FAIT CRASHER ---
+            onSeeDetails={handleSeeDetails}
           />
         );
 
@@ -118,9 +132,11 @@ const AppHome = () => {
           />
         );
 
-      case "guide": return <GuidePage />;
-      case "actualites": return <ActualitesPage />;
-      
+      case "guide":
+        return <GuidePage />;
+      case "actualites":
+        return <ActualitesPage />;
+
       // ACCUEIL
       default:
         return (

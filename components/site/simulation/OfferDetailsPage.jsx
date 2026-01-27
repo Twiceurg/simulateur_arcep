@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import PageWrapper from "../pages/PageWrapper";
 
-// --- COMPOSANT : SECTIONS DÉPLIABLES (ACCORDION) ---
+// --- COMPOSANT : SECTIONS DÉPLIABLES (ACCORDION) - VERSION FINE ---
 const AccordionSection = ({
   title,
   icon: Icon,
@@ -75,7 +75,7 @@ const AccordionSection = ({
 const OfferDetailsPage = ({ offer, onBack }) => {
   const [openSections, setOpenSections] = useState({
     summary: true,
-    overview: true,
+    overview: true, // Ouvert par défaut pour plus de visibilité
     coverage: false,
     terms: false,
   });
