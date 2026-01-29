@@ -1,86 +1,119 @@
-
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { 
-  Smartphone, 
-  ShieldCheck, 
-  Scale, 
-  Bot, 
-  Send, 
-  X, 
-  Menu, 
-  UserCircle, 
-  Radio,
-  ChevronRight,
-  Eye,
-  TowerControl as Tower,
-  Linkedin, 
-  Twitter, 
-  Facebook,
-  Newspaper,
-  BookOpen,
-  LayoutDashboard,
-  Router,
-  Zap,
-  Shield,
-  ArrowLeft,
-  Settings2,
-  Clock,
-  CircleDollarSign,
-  MessageSquareText,
-  HardDrive,
-  Hash,
-  PhoneIncoming,
-  Globe,
-  ChevronDown
+  HardDrive, PhoneIncoming, MessageSquareText, 
+  Globe, ChevronRight, Zap, CircleDollarSign 
 } from 'lucide-react';
-import PageWrapper from '../pages/PageWrapper';
 
-const MobileSimulationProfile = ({ onBack, onStart }) => {
+// --- MISE À JOUR DU COMPOSANT : SLIDER AVEC INPUT PLUS LARGE ---
+const CompactSlider = ({ label, icon: Icon, value, onChange, min, max, step = 1, unit, color }) => (
+  <div className="group bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 transition-all hover:bg-white hover:shadow-sm">
+    <div className="flex justify-between items-center mb-1.5">
+      <div className="flex items-center gap-1.5">
+        <div className="p-1 rounded-lg bg-white shadow-sm border border-slate-50">
+          <Icon className="w-3.5 h-3.5" style={{ color }} />
+        </div>
+        <span className="text-[10px] font-black uppercase text-slate-400 tracking-tight">{label}</span>
+      </div>
+      
+      {/* Augmentation de w-10 à w-24 pour accommoder les gros chiffres (5 000 000) */}
+      <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-slate-100 shadow-sm">
+        <input 
+          type="number" 
+          value={value} 
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="w-20 bg-transparent text-right font-black text-[12px] outline-none tabular-nums text-[#116984] focus:text-[#00A5D4]"
+        />
+        <span className="text-[9px] font-bold text-slate-300 uppercase">{unit}</span>
+      </div>
+    </div>
+    <input 
+      type="range" 
+      min={min} max={max} step={step} 
+      value={value} 
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="w-full h-1 appearance-none bg-slate-200 rounded-full cursor-pointer accent-[#00A5D4]"
+      style={{ accentColor: color }}
+    />
+  </div>
+);
+
+const MobileSimulationProfile = ({ onStart }) => {
+  const [budget, setBudget] = useState(15000);
   const [dataGo, setDataGo] = useState(10);
-  const [smsCount, setSmsCount] = useState(50);
-  const [callMins, setCallMins] = useState(60);
-  const [operator, setOperator] = useState('Tous les opérateurs');
+  const [smsCount, setSmsCount] = useState(100);
+  const [callMins, setCallMins] = useState(180);
+  
+  const [operator, setOperator] = useState({ id: 'all', name: 'Tous' });
 
   return (
-    <PageWrapper title="Définir mon profil mobile" icon={Settings2}>
-      <div className="max-w-4xl mx-auto text-left text-left text-left text-left text-left">
-        <button onClick={onBack} className="flex items-center text-[#116984] font-bold text-sm uppercase tracking-widest mb-8 hover:text-[#00A5D4] transition-colors text-left text-left text-left text-left text-left"><ArrowLeft className="w-4 h-4 mr-2 text-left text-left text-left text-left text-left" /> Retour à l'accueil</button>
-        <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl border border-slate-100 text-left text-left text-left text-left text-left text-left text-left text-left">
-          <div className="mb-10 text-left text-left text-left text-left text-left text-left text-left text-left text-left">
-            <h2 className="text-2xl md:text-3xl font-black text-[#116984] mb-2 uppercase tracking-tighter text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">Entrez vos besoins précis</h2>
-            <p className="text-slate-400 text-sm font-medium text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">L'algorithme filtrera les meilleures offres selon vos usages.</p>
+    <div className="w-full h-full">
+      <div className="bg-white/90 backdrop-blur-2xl rounded-[1.5rem] p-5 md:p-6 shadow-xl border border-white relative overflow-hidden h-full flex flex-col">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-50 rounded-full -mr-12 -mt-12 blur-2xl opacity-40 pointer-events-none" />
+        
+        {/* HEADER */}
+        <div className="flex items-center gap-2 mb-4 border-b border-slate-50 pb-3">
+          <div className="p-1.5 bg-[#F7941D]/10 rounded-lg text-[#F7941D]">
+            <Zap className="w-4 h-4 fill-[#F7941D]/10" />
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 text-left text-left text-left text-left text-left text-left text-left">
-            <div className="space-y-3 text-left text-left text-left text-left">
-              <label className="flex items-center text-[10px] font-black text-[#116984] uppercase tracking-widest text-left text-left text-left text-left text-left"><Globe className="w-4 h-4 mr-2 text-[#00A5D4] text-left text-left text-left text-left" /> Opérateur</label>
-              <div className="relative text-left text-left text-left text-left">
-                <select value={operator} onChange={(e) => setOperator(e.target.value)} className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-[#00A5D4] font-bold text-[#116984] appearance-none text-sm text-left text-left text-left text-left text-left text-left"><option>Tous les opérateurs</option><option>Moov Africa</option><option>Togocom</option></select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none text-left text-left text-left text-left" />
+          <h2 className="text-lg font-black text-[#116984] uppercase tracking-tighter leading-none">Simulateur et Comparateur Forfait Mobile</h2>
+        </div>
+
+        {/* MODIFICATION DE LA GRILLE : lg:grid-cols-3 (2 parts pour les inputs, 1 part pour le résumé) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow items-start">
+          
+          {/* COLONNE GAUCHE (INPUTS) : Prend 2 colonnes sur 3 */}
+          <div className="lg:col-span-2 flex flex-col gap-3">
+            <div className="flex flex-col gap-2.5">
+              <CompactSlider label="Votre Budget" icon={CircleDollarSign} value={budget} onChange={setBudget} min={500} max={5000000} step={500} unit="XOF" color="#10b981" />
+              <CompactSlider label="Internet" icon={HardDrive} value={dataGo} onChange={setDataGo} min={0} max={10000} unit="Go" color="#00A5D4" />
+              <CompactSlider label="Appels" icon={PhoneIncoming} value={callMins} onChange={setCallMins} min={0} max={10000} unit="Min" color="#116984" />
+              <CompactSlider label="SMS" icon={MessageSquareText} value={smsCount} onChange={setSmsCount} min={0} max={5000} unit="Nb" color="#F7941D" />
+            </div>
+          </div>
+
+          {/* COLONNE DROITE (RÉSUMÉ) : Prend 1 colonne sur 3 */}
+          <div className="flex flex-col h-full lg:col-span-1">
+            <div className="bg-[#116984] rounded-2xl p-5 text-white relative overflow-hidden flex-1 flex flex-col justify-between shadow-lg ring-1 ring-white/10">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 rounded-full -mr-8 -mt-8 blur-xl pointer-events-none" />
+              
+              <div>
+                {/* <h4 className="text-[9px] font-black uppercase tracking-[0.2em] opacity-50 mb-4 border-b border-white/5 pb-1">Votre Profil</h4> */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center border-b border-white/5 pb-1.5">
+                    <span className="text-[10px] font-medium opacity-60 uppercase">Budget</span>
+                    <span className="text-lg font-black tabular-nums text-emerald-400">{budget.toLocaleString()} F</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-white/5 pb-1.5">
+                    <span className="text-[10px] font-medium opacity-60 uppercase tracking-wider">Data</span>
+                    <span className="text-lg font-black tabular-nums">{dataGo} Go</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-white/5 pb-1.5">
+                    <span className="text-[10px] font-medium opacity-60 uppercase tracking-wider">Appels</span>
+                    <span className="text-lg font-black tabular-nums">{callMins} Min</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-white/5 pb-1.5">
+                    <span className="text-[10px] font-medium opacity-60 uppercase tracking-wider">SMS</span>
+                    <span className="text-lg font-black tabular-nums">{smsCount} Nb</span>
+                  </div>
+                </div>
+              </div>
+
+            <div className="mt-4">
+                <button 
+                  onClick={() => onStart({ budget, dataGo, smsCount, callMins, operator: operator.name })} 
+                  className="w-full py-3.5 bg-[#F7941D] text-white font-black rounded-xl shadow-md hover:bg-[#00A5D4] active:scale-95 transition-all duration-300 uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
+                >
+                  Comparer
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
-            <div className="space-y-3 text-left text-left text-left text-left text-left">
-              <label className="flex items-center text-[10px] font-black text-[#116984] uppercase tracking-widest text-left text-left text-left text-left text-left text-left text-left"><HardDrive className="w-4 h-4 mr-2 text-[#00A5D4] text-left text-left text-left text-left text-left" /> Volume Data</label>
-              <div className="relative text-left text-left text-left text-left text-left"><input type="number" value={dataGo} onChange={(e) => setDataGo(e.target.value)} className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-[#00A5D4] font-black text-xl text-[#116984] text-left text-left text-left text-left text-left text-left" /><span className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-300 text-left text-left text-left text-left">Go</span></div>
-            </div>
-            <div className="space-y-3 text-left text-left text-left text-left text-left text-left">
-              <label className="flex items-center text-[10px] font-black text-[#116984] uppercase tracking-widest text-left text-left text-left text-left text-left text-left text-left text-left"><MessageSquareText className="w-4 h-4 mr-2 text-[#F7941D] text-left text-left text-left text-left text-left text-left" /> SMS</label>
-              <div className="relative text-left text-left text-left text-left text-left text-left"><input type="number" value={smsCount} onChange={(e) => setSmsCount(e.target.value)} className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-[#F7941D] font-black text-xl text-[#116984] text-left text-left text-left text-left text-left text-left" /><span className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-300 text-left text-left text-left text-left">Nb</span></div>
-            </div>
-            <div className="space-y-3 text-left text-left text-left text-left text-left text-left text-left text-left">
-              <label className="flex items-center text-[10px] font-black text-[#116984] uppercase tracking-widest text-left text-left text-left text-left text-left text-left text-left text-left text-left"><PhoneIncoming className="w-4 h-4 mr-2 text-[#116984] text-left text-left text-left text-left text-left text-left text-left text-left" /> Appels</label>
-              <div className="relative text-left text-left text-left text-left text-left text-left text-left text-left"><input type="number" value={callMins} onChange={(e) => setCallMins(e.target.value)} className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-[#116984] font-black text-xl text-[#116984] text-left text-left text-left text-left text-left text-left" /><span className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-300 text-left text-left text-left text-left">Min</span></div>
-            </div>
-          </div>
-          <div className="bg-slate-50 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-slate-100 text-left text-left text-left text-left text-left">
-            <div className="text-left text-left text-left text-left text-left text-left text-left text-left text-left"><h4 className="text-[#116984] font-black uppercase text-[10px] tracking-widest mb-1">Résumé du profil</h4><div className="flex flex-wrap gap-3 text-sm font-bold text-[#116984] text-left text-left text-left text-left text-left text-left text-left text-left"><span className="text-[#00A5D4] text-left text-left text-left text-left">{dataGo} Go</span><span>•</span><span className="text-[#F7941D] text-left text-left text-left text-left">{smsCount} SMS</span><span>•</span><span className="text-left text-left text-left text-left">{callMins} Min</span></div></div>
-            <button onClick={() => onStart({ dataGo, smsCount, callMins, operator })} className="w-full md:w-auto px-10 py-5 bg-[#116984] text-white font-black rounded-2xl shadow-xl hover:bg-[#00A5D4] transition-all uppercase tracking-widest text-[11px] flex items-center justify-center text-left text-left text-left text-left text-left text-left text-left text-left text-left">Lancer la comparaison <ChevronRight className="ml-2 w-5 h-5 text-left text-left text-left text-left text-left text-left text-left text-left text-left" /></button>
           </div>
         </div>
       </div>
-    </PageWrapper>
+    </div>
   );
 };
-
 
 export default MobileSimulationProfile;
