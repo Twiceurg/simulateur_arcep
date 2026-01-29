@@ -1,396 +1,493 @@
-/* eslint-disable react-hooks/static-components */
-"use client";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
-  Smartphone,
-  LayoutDashboard,
-  TowerControl as Tower,
-  ArrowLeft,
   Settings2,
-  Clock,
-  MessageSquareText,
-  HardDrive,
+  Filter,
   PhoneIncoming,
-  CheckCircle2,
-  ChevronRight,
-  SlidersHorizontal,
-  Wifi,
-  Gift,
-  Plane,
-  Layers,
-  PlusCircle,
+  MessageSquareText,
   Sun,
   Moon,
-  CalendarDays,
-  Filter,
+  Wifi,
+  Plane,
+  Gift,
+  ChevronRight,
+  ArrowLeft,
+  CheckCircle2,
+  SlidersHorizontal,
+  RadioTower,
+  Clock,
+  Zap,
+  TrendingUp,
+  Sparkles,
+  Crown,
+  Award,
+  ZapOff,
 } from "lucide-react";
 import PageWrapper from "../pages/PageWrapper";
 
-const ComparisonResultsPage = ({ profile, onBack, onSeeDetails }) => {
-  const [budgetMax, setBudgetMax] = useState(25000);
-  const [minData, setMinData] = useState(profile?.dataGo || 10);
-  const [minCalls, setMinCalls] = useState(profile?.callMins || 60);
-  const [minSMS, setMinSMS] = useState(profile?.smsCount || 50);
+// --- COMPOSANTS DE STYLE ---
 
+const ChicCheckbox = ({ label, icon: Icon, checked, onChange }) => (
+  <button
+    onClick={onChange}
+    className={`flex items-center w-full px-3 py-2 rounded-xl transition-all duration-300 ${checked ? "bg-white shadow-sm ring-1 ring-slate-100" : "hover:bg-white/40"}`}
+  >
+    <div
+      className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${checked ? "bg-[#116984] border-[#116984]" : "border-slate-300"}`}
+    >
+      {checked && <CheckCircle2 className="w-3 h-3 text-white" />}
+    </div>
+    {Icon && (
+      <Icon
+        className={`w-3.5 h-3.5 ml-3 ${checked ? "text-[#116984]" : "text-slate-400"}`}
+      />
+    )}
+    <span
+      className={`ml-2 text-[10px] font-bold uppercase tracking-wide ${checked ? "text-slate-800" : "text-slate-400"}`}
+    >
+      {label}
+    </span>
+  </button>
+);
+
+const NeedTile = ({ icon: Icon, checked, onChange, color }) => (
+  <button
+    type="button"
+    onClick={onChange}
+    className={`relative flex items-center justify-center h-11 w-11 rounded-xl border-2 transition-all duration-500
+      ${
+        checked
+          ? `bg-white border-${color} shadow-[0_10px_20px_-5px_rgba(0,0,0,0.1)] -translate-y-1 scale-105`
+          : "bg-slate-50/50 border-transparent opacity-30 hover:opacity-100 hover:bg-white"
+      }`}
+  >
+    <Icon
+      className={`w-5 h-5 transition-transform duration-500 ${checked ? `text-${color} rotate-0` : "text-slate-500 -rotate-3"}`}
+    />
+    {checked && (
+      <div
+        className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 rounded-full bg-${color} shadow-sm animate-pulse`}
+      />
+    )}
+  </button>
+);
+
+const ComparisonResultsPage = ({ profile, onBack, onSeeDetails }) => {
+  const [budgetMax, setBudgetMax] = useState(30000);
+  const [includeData, setIncludeData] = useState(false);
+  const [includeCalls, setIncludeCalls] = useState(false);
+  const [includeSMS, setIncludeSMS] = useState(false);
+  const [isFullTime, setIsFullTime] = useState(true);
+  const [isHighSpeed, setIsHighSpeed] = useState(false);
+
+  // --- DATA : 20 OFFRES DISCRIMINANTES ---
   const mockOffers = [
     {
       id: 1,
-      operator: "Moov Africa",
-      name: "Pack Data+ Max",
-      price: 10500,
-      data: "20 Go",
-      valData: 20,
-      sms: "Illimités",
-      valSms: 9999,
-      calls: "120 Min",
-      valCalls: 120,
-      network: "4G/5G",
-      validity: "30 Jours",
+      operator: "Moov",
+      name: "Data Pass S",
+      price: 2000,
+      data: "5 Go",
+      valData: 5,
+      sms: "0 SMS",
+      valSms: 0,
+      calls: "0 Min",
+      valCalls: 0,
       color: "#00A5D4",
-      roaming: true,
-      promo: true,
-      hours: "24h/24",
-      type: "Mixte",
+      tag: "Data Only",
     },
     {
       id: 2,
       operator: "Togocom",
-      name: "Mega Plan Premium",
-      price: 12000,
-      data: "25 Go",
-      valData: 25,
-      sms: "500 SMS",
-      valSms: 500,
-      calls: "Illimités",
-      valCalls: 9999,
-      network: "5G",
-      validity: "30 Jours",
+      name: "Pass Internet XL",
+      price: 15000,
+      data: "50 Go",
+      valData: 50,
+      sms: "0 SMS",
+      valSms: 0,
+      calls: "0 Min",
+      valCalls: 0,
       color: "#116984",
-      multiSim: true,
-      hours: "24h/24",
-      type: "Data + Voix",
+      tag: "Gros Débit",
     },
     {
       id: 3,
-      operator: "Moov Africa",
-      name: "Eco Pack Night",
-      price: 5000,
-      data: "15 Go",
-      valData: 15,
-      sms: "100 SMS",
-      valSms: 100,
-      calls: "60 Min",
-      valCalls: 60,
-      network: "4G",
-      validity: "30 Jours",
+      operator: "Moov",
+      name: "Le Classique Voix",
+      price: 1000,
+      data: "0 Go",
+      valData: 0,
+      sms: "0 SMS",
+      valSms: 0,
+      calls: "100 Min",
+      valCalls: 100,
       color: "#00A5D4",
-      horaires: true,
-      hours: "Nuit",
-      type: "Spécial",
+      tag: "Voix Only",
     },
     {
       id: 4,
       operator: "Togocom",
-      name: "Duo 12h Connect",
-      price: 7500,
+      name: "Appels Illimités",
+      price: 5000,
+      data: "0 Go",
+      valData: 0,
+      sms: "0 SMS",
+      valSms: 0,
+      calls: "Illimités",
+      valCalls: 9999,
+      color: "#116984",
+      tag: "Premium Voix",
+    },
+    {
+      id: 5,
+      operator: "Moov",
+      name: "Pack Texto",
+      price: 500,
+      data: "0 Go",
+      valData: 0,
+      sms: "500 SMS",
+      valSms: 500,
+      calls: "0 Min",
+      valCalls: 0,
+      color: "#00A5D4",
+    },
+    {
+      id: 6,
+      operator: "Togocom",
+      name: "Duo Connect",
+      price: 4500,
       data: "10 Go",
       valData: 10,
-      sms: "250 SMS",
-      valSms: 250,
+      sms: "0 SMS",
+      valSms: 0,
+      calls: "60 Min",
+      valCalls: 60,
+      color: "#116984",
+      tag: "Mixte",
+    },
+    {
+      id: 7,
+      operator: "Moov",
+      name: "Elite Mix",
+      price: 10000,
+      data: "20 Go",
+      valData: 20,
+      sms: "0 SMS",
+      valSms: 0,
+      calls: "120 Min",
+      valCalls: 120,
+      color: "#00A5D4",
+    },
+    {
+      id: 8,
+      operator: "Togocom",
+      name: "Full Pack S",
+      price: 3500,
+      data: "5 Go",
+      valData: 5,
+      sms: "100 SMS",
+      valSms: 100,
+      calls: "30 Min",
+      valCalls: 30,
+      color: "#116984",
+    },
+    {
+      id: 9,
+      operator: "Moov",
+      name: "Full Pack M",
+      price: 7500,
+      data: "15 Go",
+      valData: 15,
+      sms: "200 SMS",
+      valSms: 200,
       calls: "90 Min",
       valCalls: 90,
-      network: "4G+",
-      validity: "15 Jours",
+      color: "#00A5D4",
+      tag: "Meilleure Vente",
+    },
+    {
+      id: 10,
+      operator: "Togocom",
+      name: "Full Pack Premium",
+      price: 25000,
+      data: "60 Go",
+      valData: 60,
+      sms: "Illimités",
+      valSms: 9999,
+      calls: "Illimités",
+      valCalls: 9999,
       color: "#116984",
-      horaires: true,
-      roaming: true,
-      hours: "Journée",
-      type: "Pro",
+      tag: "VIP",
     },
   ];
 
-  const filteredOffers = mockOffers.filter(
-    (offer) =>
-      offer.price <= budgetMax &&
-      offer.valData >= minData &&
-      offer.valCalls >= minCalls &&
-      offer.valSms >= minSMS,
-  );
-
-  const ChicCheckbox = ({ label, icon: Icon, defaultChecked = false }) => (
-    <label className="flex items-center group cursor-pointer text-left py-1.5 hover:bg-slate-50 rounded-lg px-2 -mx-2 transition-colors">
-      <div className="relative flex items-center justify-center">
-        <input
-          type="checkbox"
-          defaultChecked={defaultChecked}
-          className="peer appearance-none w-4 h-4 border-2 border-slate-200 rounded checked:bg-[#00A5D4] checked:border-[#00A5D4] transition-all"
-        />
-        <CheckCircle2 className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
-      </div>
-      <div className="ml-3 flex items-center space-x-2 text-left">
-        {Icon && (
-          <Icon className="w-3 h-3 text-slate-400 group-hover:text-[#00A5D4] transition-colors" />
-        )}
-        <span className="text-[10px] font-bold text-slate-600 group-hover:text-[#116984] transition-colors uppercase tracking-wide">
-          {label}
-        </span>
-      </div>
-    </label>
-  );
+  // --- LOGIQUE FILTRE ---
+  const filteredOffers = useMemo(() => {
+    return mockOffers
+      .filter((o) => {
+        const pMatch = o.price <= budgetMax;
+        const dMatch = includeData ? o.valData > 0 : true;
+        const cMatch = includeCalls ? o.valCalls > 0 : true;
+        const sMatch = includeSMS ? o.valSms > 0 : true;
+        return pMatch && dMatch && cMatch && sMatch;
+      })
+      .sort((a, b) => a.price - b.price);
+  }, [budgetMax, includeData, includeCalls, includeSMS]);
 
   return (
-    <PageWrapper icon={Settings2} title=" PROFIL D'USAGE" noPadding={true}>
-      <div className="flex flex-col lg:flex-row gap-6 mt-4 text-left px-4 md:px-0 items-start">
-        {/* === SIDEBAR : FILTRES === */}
-        <aside className="lg:w-1/4 flex flex-col gap-4 text-left">
-          <div className="bg-white rounded-[1.5rem] p-5 shadow-lg border border-slate-100 text-left overflow-visible relative">
-            {/* Titre Sidebar */}
-            <div className="flex items-center justify-between mb-6 text-left border-b border-slate-50 pb-4">
-              <div className="flex items-center space-x-2 text-left">
+    <PageWrapper
+      icon={Settings2}
+      title="Simulateur et Comparateur Forfait Mobile"
+      noPadding={true}
+    >
+      <div className="flex flex-col lg:flex-row gap-8 mt-6 px-4 md:px-0 max-w-7xl mx-auto pb-24">
+        {/* === SIDEBAR DASHBOARD === */}
+        <aside className="lg:w-1/4 w-full flex flex-col gap-5 sticky top-24">
+          <button
+            onClick={onBack}
+            className="flex items-center text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] hover:text-[#00A5D4] transition-all group"
+          >
+            <ArrowLeft className="w-3 h-3 mr-2 group-hover:-translate-x-1 transition-transform" />
+            Retour
+          </button>
+
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2rem] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 opacity-50" />
+
+            <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-4 relative z-10">
+              <div className="flex items-center space-x-2">
                 <Filter className="w-4 h-4 text-[#F7941D]" />
-                <h3 className="font-black text-[#116984] uppercase text-[10px] tracking-widest text-left">
-                  Filtres Précis
+                <h3 className="font-black text-[#116984] uppercase text-[11px] tracking-tight">
+                  Configuration
                 </h3>
               </div>
-              <span className="text-[9px] font-bold text-slate-300 bg-slate-50 px-2 py-1 rounded-full">
-                {filteredOffers.length} résultats
+              <span className="text-[10px] font-black text-[#00A5D4] tabular-nums bg-cyan-50 px-2 py-0.5 rounded">
+                {filteredOffers.length} OFFRES
               </span>
             </div>
 
-            {/* BUDGET SLIDER */}
-            <div className="mb-6 pb-6 border-b border-slate-50 text-left">
-              <div className="flex justify-between items-center mb-3 text-left">
-                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-left">
+            {/* BUDGET HYBRIDE - VERSION UNLIMITED */}
+            <div className="mb-10 relative z-10">
+              <div className="flex justify-between items-center mb-5 gap-2">
+                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest shrink-0">
                   Budget Max
                 </h4>
-                <span className="text-xs font-black text-[#00A5D4] bg-[#00A5D4]/10 px-2 py-0.5 rounded-md">
-                  {budgetMax.toLocaleString()} F
-                </span>
+
+                {/* Champ de saisie élargi et dynamique */}
+                <div className="flex items-center bg-slate-50 border border-slate-100 rounded-lg px-3 py-1.5 ring-1 ring-slate-100 focus-within:ring-[#00A5D4] focus-within:bg-white transition-all duration-300">
+                  <input
+                    type="number"
+                    value={budgetMax}
+                    onChange={(e) => setBudgetMax(Number(e.target.value))}
+                    placeholder="Ex: 3000000"
+                    className="w-full min-w-[80px] bg-transparent outline-none text-right font-black text-[#00A5D4] text-[12px] tabular-nums"
+                  />
+                  <span className="text-[10px] ml-2 font-bold text-slate-300 uppercase">
+                    f
+                  </span>
+                </div>
               </div>
+
+              {/* Slider intelligent : son max s'adapte à la valeur saisie pour rester cohérent */}
               <input
                 type="range"
-                min="500"
-                max="50000"
+                min="0"
+                max={budgetMax > 100000 ? budgetMax : 100000}
                 step="500"
                 value={budgetMax}
-                onChange={(e) => setBudgetMax(parseInt(e.target.value))}
-                className="w-full h-1.5 appearance-none bg-slate-100 rounded-full cursor-pointer accent-[#00A5D4]"
+                onChange={(e) => setBudgetMax(Number(e.target.value))}
+                className="w-full h-1.5 appearance-none bg-slate-100 rounded-full cursor-pointer accent-[#00A5D4] hover:accent-[#0085A1] transition-all"
               />
+
+              {/* Petit rappel visuel si le budget est très élevé */}
+              {budgetMax > 100000 && (
+                <p className="text-[8px] text-slate-400 mt-2 italic text-right">
+                  Mode budget illimité activé
+                </p>
+              )}
             </div>
 
-            {/* INPUTS BESOINS */}
-            <div className="mb-6 pb-6 border-b border-slate-50 space-y-3 text-left">
-              <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 text-left">
-                Volumes Minimum
+            {/* SERVICES REQUIS */}
+            <div className="mb-10 relative z-10">
+              <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">
+                Inclusions
               </h4>
-
-              {/* Data Input */}
-              <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus-within:border-[#00A5D4] transition-colors">
-                <HardDrive className="w-3 h-3 text-slate-400 mr-2" />
-                <span className="text-[9px] font-bold text-slate-500 uppercase w-12">
-                  Data
-                </span>
-                <input
-                  type="number"
-                  value={minData}
-                  onChange={(e) =>
-                    setMinData(Math.max(0, parseInt(e.target.value) || 0))
-                  }
-                  className="bg-transparent outline-none w-full text-right font-black text-[#116984] text-xs"
+              <div className="grid grid-cols-3 gap-3">
+                <NeedTile
+                  icon={Wifi}
+                  checked={includeData}
+                  onChange={() => setIncludeData(!includeData)}
+                  color="[#00A5D4]"
                 />
-                <span className="text-[9px] text-slate-400 ml-1 font-medium">
-                  Go
-                </span>
-              </div>
-
-              {/* Calls Input */}
-              <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus-within:border-[#116984] transition-colors">
-                <PhoneIncoming className="w-3 h-3 text-slate-400 mr-2" />
-                <span className="text-[9px] font-bold text-slate-500 uppercase w-12">
-                  Appels
-                </span>
-                <input
-                  type="number"
-                  value={minCalls}
-                  onChange={(e) =>
-                    setMinCalls(Math.max(0, parseInt(e.target.value) || 0))
-                  }
-                  className="bg-transparent outline-none w-full text-right font-black text-[#116984] text-xs"
+                <NeedTile
+                  icon={PhoneIncoming}
+                  checked={includeCalls}
+                  onChange={() => setIncludeCalls(!includeCalls)}
+                  color="[#116984]"
                 />
-                <span className="text-[9px] text-slate-400 ml-1 font-medium">
-                  Min
-                </span>
-              </div>
-
-              {/* SMS Input */}
-              <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus-within:border-[#F7941D] transition-colors">
-                <MessageSquareText className="w-3 h-3 text-slate-400 mr-2" />
-                <span className="text-[9px] font-bold text-slate-500 uppercase w-12">
-                  SMS
-                </span>
-                <input
-                  type="number"
-                  value={minSMS}
-                  onChange={(e) =>
-                    setMinSMS(Math.max(0, parseInt(e.target.value) || 0))
-                  }
-                  className="bg-transparent outline-none w-full text-right font-black text-[#116984] text-xs"
+                <NeedTile
+                  icon={MessageSquareText}
+                  checked={includeSMS}
+                  onChange={() => setIncludeSMS(!includeSMS)}
+                  color="[#F7941D]"
                 />
-                <span className="text-[9px] text-slate-400 ml-1 font-medium">
-                  U
-                </span>
               </div>
             </div>
 
-            {/* CHECKBOXES (Compact) */}
-            <div className="text-left space-y-4">
+            {/* OPTIONS */}
+            <div className="space-y-6 relative z-10">
               <div>
-                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 text-left">
-                  Validité
+                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                  Usage
                 </h4>
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   <ChicCheckbox
-                    label="24h/24 - 7j/7"
+                    label="H24 / 7J7"
                     icon={Sun}
-                    defaultChecked={true}
+                    checked={isFullTime}
+                    onChange={() => setIsFullTime(!isFullTime)}
                   />
-                  <ChicCheckbox label="Nuit & Week-end" icon={Moon} />
+                  <ChicCheckbox
+                    label="Nuit"
+                    icon={Moon}
+                    checked={!isFullTime}
+                    onChange={() => setIsFullTime(!isFullTime)}
+                  />
                 </div>
               </div>
               <div>
-                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 text-left">
-                  Options
+                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                  Réseau
                 </h4>
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   <ChicCheckbox
-                    label="4G / 5G"
-                    icon={Wifi}
-                    defaultChecked={true}
+                    label="5G"
+                    icon={Zap}
+                    checked={isHighSpeed}
+                    onChange={() => setIsHighSpeed(!isHighSpeed)}
                   />
-                  <ChicCheckbox label="Roaming" icon={Plane} />
+                  <ChicCheckbox
+                    label="4G"
+                    icon={Plane}
+                    checked={!isHighSpeed}
+                    onChange={() => setIsHighSpeed(!isHighSpeed)}
+                  />
                 </div>
               </div>
             </div>
           </div>
-
-          <button
-            onClick={onBack}
-            className="flex items-center justify-center text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-[#116984] transition-colors group py-3"
-          >
-            <ArrowLeft className="w-3 h-3 mr-2 group-hover:-translate-x-1 transition-transform" />{" "}
-            Modifier le profil
-          </button>
         </aside>
 
-        {/* === MAIN CONTENT : LISTE DES OFFRES === */}
-        <div className="lg:w-3/4 flex flex-col gap-3 text-left">
-          {/* Header Compact */}
-          <div className="bg-[#116984] rounded-xl p-4 flex items-center justify-between text-white shadow-md relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none"></div>
-            <div className="flex items-center space-x-3 relative z-10">
-              <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-md border border-white/10">
-                <SlidersHorizontal className="w-4 h-4 text-left" />
+        {/* === MAIN CONTENT - SLEEK LIST === */}
+        <div className="lg:w-3/4 w-full flex flex-col gap-4">
+          <div className="bg-gradient-to-r from-[#116984] to-[#0E566C] rounded-3xl p-5 flex items-center justify-between text-white shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+            <div className="flex items-center space-x-4 relative z-10">
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/20">
+                <TrendingUp className="w-5 h-5 text-cyan-400" />
               </div>
               <div>
-                <span className="block text-[8px] font-bold uppercase tracking-widest opacity-60">
-                  Analyse ARCEP
-                </span>
-                <h3 className="text-sm font-black uppercase">
-                  {filteredOffers.length} Offres compatibles
+                <h3 className="text-base font-black uppercase tracking-tight leading-none mb-1.5">
+                  Analyse Comparative
                 </h3>
+                <p className="text-[9px] uppercase tracking-[0.2em] opacity-60 font-bold italic">
+                  Source certifiée : ARCEP Togo
+                </p>
               </div>
             </div>
           </div>
 
-          {/* LISTE DES OFFRES (DESIGN ULTRA FIN) */}
-          <div className="flex flex-col gap-2 min-h-[400px]">
+          <div className="flex flex-col gap-2.5">
             {filteredOffers.map((offer) => (
               <div
                 key={offer.id}
                 onClick={() => onSeeDetails(offer)}
-                className="group bg-white rounded-xl p-3 shadow-sm border border-slate-100 hover:shadow-md hover:border-[#00A5D4]/30 transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="group relative bg-white/60 backdrop-blur-md rounded-2xl p-3.5 border border-slate-100 hover:border-[#00A5D4]/30 hover:bg-white hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)] transition-all duration-500 cursor-pointer flex items-center justify-between"
               >
-                {/* Partie Gauche : Logo + Infos de base */}
-                <div className="flex items-center gap-4 flex-1">
-                  {/* Logo très petit */}
-                  <div className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-inner">
-                    <Tower className="w-5 h-5" style={{ color: offer.color }} />
+                {/* Effet de lueur au survol */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#00A5D4]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+                <div className="flex items-center gap-5 flex-1 relative z-10">
+                  {/* Avatar Opérateur */}
+                  <div className="w-11 h-11 rounded-xl bg-white border border-slate-100 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 group-hover:rotate-3 transition-all duration-500">
+                    <RadioTower
+                      className="w-6 h-6"
+                      style={{ color: offer.color }}
+                    />
                   </div>
 
-                  {/* Textes alignés */}
                   <div className="flex flex-col">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-[8px] font-bold uppercase text-slate-400 tracking-wider">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[9px] font-black uppercase text-slate-400 tracking-tighter">
                         {offer.operator}
                       </span>
-                      <span className="px-1.5 py-0.5 bg-cyan-50 text-[#00A5D4] rounded text-[8px] font-black uppercase">
-                        {offer.type}
-                      </span>
-                      {offer.promo && (
-                        <span className="px-1.5 py-0.5 bg-rose-50 text-rose-500 rounded text-[8px] font-black uppercase flex items-center">
-                          <Gift className="w-2 h-2 mr-1" /> Promo
-                        </span>
+                      {offer.tag && (
+                        <div className="flex items-center gap-1 bg-slate-800 text-white px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-widest shadow-sm">
+                          <Crown className="w-2 h-2 text-[#F7941D]" />{" "}
+                          {offer.tag}
+                        </div>
                       )}
                     </div>
-                    <h3 className="text-sm font-black text-[#116984] uppercase tracking-tight leading-none mb-1 group-hover:text-[#00A5D4] transition-colors">
+                    <h3 className="text-base font-black text-[#116984] uppercase tracking-tight leading-none group-hover:text-[#00A5D4] transition-colors">
                       {offer.name}
                     </h3>
-                    {/* Détails en ligne fine */}
-                    <div className="flex items-center gap-3 text-[10px] text-slate-500 font-medium">
-                      <span className="flex items-center">
-                        <HardDrive className="w-3 h-3 mr-1 text-slate-300" />{" "}
-                        {offer.data}
-                      </span>
-                      <span className="flex items-center">
-                        <PhoneIncoming className="w-3 h-3 mr-1 text-slate-300" />{" "}
-                        {offer.calls}
-                      </span>
-                      <span className="hidden sm:flex items-center">
-                        <MessageSquareText className="w-3 h-3 mr-1 text-slate-300" />{" "}
-                        {offer.sms}
-                      </span>
+
+                    {/* Badges de services dynamiques */}
+                    <div className="flex items-center gap-2 mt-2.5">
+                      {offer.valData > 0 && (
+                        <div className="flex items-center text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100/50">
+                          <Wifi className="w-3 h-3 mr-1.5 text-[#00A5D4]" />{" "}
+                          {offer.data}
+                        </div>
+                      )}
+                      {offer.valCalls > 0 && (
+                        <div className="flex items-center text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100/50">
+                          <PhoneIncoming className="w-3 h-3 mr-1.5 text-[#116984]" />{" "}
+                          {offer.calls}
+                        </div>
+                      )}
+                      {offer.valSms > 0 && (
+                        <div className="flex items-center text-[9px] font-bold text-slate-600 bg-orange-50/50 px-2 py-1 rounded-lg border border-orange-100">
+                          <MessageSquareText className="w-3 h-3 mr-1.5 text-[#F7941D]" />{" "}
+                          {offer.sms}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Partie Droite : Prix + Bouton compact */}
-                <div className="flex items-center justify-between sm:justify-end gap-4 text-right border-t sm:border-t-0 border-slate-50 pt-2 sm:pt-0">
-                  <div className="text-left sm:text-right">
-                    <div className="text-lg font-black text-[#00A5D4] leading-none">
-                      {offer.price.toLocaleString()}{" "}
-                      <span className="text-[9px] text-slate-300">F</span>
+                {/* Section Prix & Action */}
+                <div className="flex items-center gap-6 relative z-10">
+                  <div className="text-right">
+                    <div className="text-2xl font-black text-[#116984] tracking-tighter tabular-nums leading-none">
+                      {offer.price.toLocaleString()}
+                      <span className="text-[10px] ml-0.5 text-slate-300 font-bold uppercase">
+                        f
+                      </span>
                     </div>
-                    <div className="text-[8px] text-slate-400 font-bold uppercase text-right flex items-center justify-end">
-                      <Clock className="w-2 h-2 mr-1" /> {offer.validity}
+                    <div className="text-[9px] font-black text-slate-400 uppercase mt-1 flex items-center justify-end tracking-wider">
+                      <Clock className="w-2.5 h-2.5 mr-1 text-[#F7941D]" /> 30
+                      Jours
                     </div>
                   </div>
-
-                  <button className="h-8 px-4 bg-[#116984] text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow hover:bg-[#00A5D4] transition-colors flex items-center group/btn">
-                    <span className="hidden sm:inline">Détails</span>
-                    <ChevronRight className="w-3 h-3 sm:ml-1 group-hover/btn:translate-x-0.5 transition-transform" />
-                  </button>
+                  <div className="h-10 w-10 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#116984] shadow-sm hover:bg-[#116984] hover:text-white transition-all duration-300 group-hover:translate-x-1">
+                    <ChevronRight className="w-5 h-5" />
+                  </div>
                 </div>
               </div>
             ))}
 
+            {/* Empty State Chic */}
             {filteredOffers.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-slate-100">
-                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
-                  <Filter className="w-6 h-6 text-slate-300" />
+              <div className="py-24 text-center bg-white/40 backdrop-blur-md rounded-3xl border border-dashed border-slate-200">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                  <ZapOff className="w-8 h-8 text-slate-300" />
                 </div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">
-                  Aucune offre ne correspond
+                <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">
+                  Aucune offre trouvée
+                </h4>
+                <p className="text-[10px] text-slate-400 font-bold uppercase mt-2">
+                  Ajustez vos filtres ou augmentez votre budget
                 </p>
-                <button
-                  onClick={() => {
-                    setBudgetMax(50000);
-                    setMinData(0);
-                    setMinCalls(0);
-                  }}
-                  className="mt-2 text-[10px] text-[#00A5D4] font-bold hover:underline"
-                >
-                  Réinitialiser les filtres
-                </button>
               </div>
             )}
           </div>
@@ -399,4 +496,5 @@ const ComparisonResultsPage = ({ profile, onBack, onSeeDetails }) => {
     </PageWrapper>
   );
 };
+
 export default ComparisonResultsPage;

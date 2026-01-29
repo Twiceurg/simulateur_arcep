@@ -152,22 +152,23 @@ const AppHome = () => {
                   buttonText="Définir mon profil"
                   variant="navy"
                   subOptionsDescription="Préférez-vous un profil standardisé rapide ou une configuration technique sur-mesure ?"
-                  subOptions={[
-                    {
-                      label: "Par Gamme",
-                      subLabel: "Profils Types (Rapide)",
-                      icon: Layers,
-                      color: "#00A5D4",
-                      onClick: () => setCurrentPage("simulation-gamme"),
-                    },
-                    {
-                      label: "Mode Avancé",
-                      subLabel: "Configuration Expert",
-                      icon: Sliders,
-                      color: "#116984",
-                      onClick: () => setCurrentPage("simulation-mobile"),
-                    },
-                  ]}
+                  onAction={() => setCurrentPage("simulation-mobile")}
+                  // subOptions={[
+                  //   {
+                  //     label: "Par Gamme",
+                  //     subLabel: "Profils Types (Rapide)",
+                  //     icon: Layers,
+                  //     color: "#00A5D4",
+                  //     onClick: () => setCurrentPage("simulation-gamme"),
+                  //   },
+                  //   {
+                  //     label: "Mode Avancé",
+                  //     subLabel: "Configuration Expert",
+                  //     icon: Sliders,
+                  //     color: "#116984",
+                  //     onClick: () => setCurrentPage("simulation-mobile"),
+                  //   },
+                  // ]}
                 />
 
                 <ServiceCard
@@ -178,11 +179,11 @@ const AppHome = () => {
                   buttonText="Comparer le fixe"
                   variant="orange"
                   onAction={() => setCurrentPage("comparateur-fixe")}
-                  isPopular={true}
+                  // isPopular={true}
                 />
               </div>
-              <ModernSeparator icon={ShieldCheck} />
-              <ProtectionSection />
+              {/* <ModernSeparator icon={ShieldCheck} /> */}
+              {/* <ProtectionSection /> */}
             </main>
           </>
         );
@@ -207,17 +208,6 @@ const AppHome = () => {
       {renderPage()}
 
       <Footer onNavigate={setCurrentPage} />
-
-      <AIModal
-        isOpen={isAIModalOpen}
-        onClose={toggleAIModal}
-        chatHistory={chatHistory}
-        userInput={userInput}
-        setUserInput={setUserInput}
-        onAsk={askGemini}
-        isLoading={isLoading}
-        chatEndRef={chatEndRef}
-      />
     </div>
   );
 };
